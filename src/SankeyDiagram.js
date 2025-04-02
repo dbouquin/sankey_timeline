@@ -11,10 +11,10 @@ const TimeBasedSankeyDiagram = () => {
       { id: "project1", name: "Project A", time: new Date(2022, 0, 1), size: 50, color: "#3498db" },
       { id: "project2", name: "Project B", time: new Date(2022, 3, 1), size: 80, color: "#e74c3c" },
       { id: "project3", name: "Project C", time: new Date(2022, 7, 1), size: 60, color: "#2ecc71" },
-      { id: "project4", name: "Project D", time: new Date(2022, 9, 1), size: 100, color: "#9b59b6" },
+      { id: "project4", name: "Project D", time: new Date(2022, 9, 1), size: 100, color: "#9b59b6" }, // Standalone project
       { id: "project5", name: "Project E", time: new Date(2022, 2, 15), size: 35, color: "#f39c12" }, // Standalone project
       { id: "project6", name: "Project F", time: new Date(2022, 6, 10), size: 75, color: "#1abc9c" }, // Standalone project
-      { id: "project7", name: "Project G", time: new Date(2022, 11, 5), size: 45, color: "#34495e" }  // Standalone project
+      { id: "project7", name: "Project G", time: new Date(2022, 11, 5), size: 25, color: "#6e87f5" }  // Standalone project
     ];
     
     // Define relationships between projects with durations and phases
@@ -23,11 +23,12 @@ const TimeBasedSankeyDiagram = () => {
     const links = [
       { source: "project1", target: "project3", value: 20, duration: 7, phases: 4 }, // 4 phases
       { source: "project2", target: "project4", value: 45, duration: 6, phases: 3 }, // 3 phases
-      { source: "project3", target: "project4", value: 35, duration: 2, phases: 1 }  // 1 phase
+      { source: "project3", target: "project4", value: 35, duration: 2, phases: 2 }  // 2 phase
     ];
     
     // Add phases for standalone projects
     const standalonePhases = [
+      { source: "project4", duration: 4, phases: 1 }, // 2 phases for Project D
       { source: "project5", duration: 4, phases: 2 }, // 2 phases for Project E
       { source: "project6", duration: 5, phases: 3 }, // 3 phases for Project F
       { source: "project7", duration: 3, phases: 1 }  // 1 phase for Project G
@@ -70,7 +71,7 @@ const TimeBasedSankeyDiagram = () => {
       endTimes.push(endTime);
     });
     
-    // Also add end times for standalone projects
+    // Add end times for standalone projects
     standalonePhases.forEach(phase => {
       const sourceProject = projects.find(p => p.id === phase.source);
       const endTime = new Date(sourceProject.time);
@@ -78,7 +79,9 @@ const TimeBasedSankeyDiagram = () => {
       endTimes.push(endTime);
     });
     
-    const timeExtent = d3.extent([...startTimes, ...endTimes]);
+    // Set fixed start date to December 2021
+    const fixedStartDate = new Date(2021, 11, 1); // December 2021 (month is 0-based)
+    const timeExtent = [fixedStartDate, d3.max([...startTimes, ...endTimes])];
     
     // Set up scales
     const xScale = d3.scaleTime()
@@ -96,7 +99,7 @@ const TimeBasedSankeyDiagram = () => {
     
     svg.append("g")
       .attr("class", "x-axis")
-      .attr("transform", `translate(0,${height})`)
+      .attr("transform", `translate(0,${height - 20})`) // Adjusted to move label
       .call(xAxis)
       .selectAll("text")
       .style("text-anchor", "end")
@@ -118,7 +121,7 @@ const TimeBasedSankeyDiagram = () => {
     
     svg.append("text")
       .attr("transform", "rotate(-90)")
-      .attr("y", -margin.left + 15)
+      .attr("y", -margin.left - 4) // Adjusted to move label away from axis
       .attr("x", -(height / 2))
       .attr("dy", "1em")
       .style("text-anchor", "middle")
@@ -151,7 +154,7 @@ const TimeBasedSankeyDiagram = () => {
       const target = projects.find(p => p.id === d.target);
       const endPos = getLinkEndPosition(d);
       
-      // Calculate the thickness based on the number of phases
+      // Calculate connection thickness based on the number of phases
       const thickness = Math.max(3, d.phases * 8);
       
       // Adjust the start and end positions to connect to the vertical rectangles
@@ -467,7 +470,7 @@ const TimeBasedSankeyDiagram = () => {
     // Add legend
     const legend = svg.append("g")
       .attr("class", "legend")
-      .attr("transform", `translate(${width - 180}, 20)`);
+      .attr("transform", `translate(${width + 20}, 20)`);
 
     // Project examples in legend
     legend.append("text")
@@ -478,11 +481,11 @@ const TimeBasedSankeyDiagram = () => {
       .style("font-weight", "bold");
       
     // Show a few project colors in the legend
-    const legendProjects = projects.slice(0, Math.min(5, projects.length));
+    const legendProjects = projects.slice(0, Math.min(7, projects.length));
     legendProjects.forEach((project, i) => {
       legend.append("rect")
-        .attr("x", i === 0 ? 0 : 5 + Math.floor(i / 3) * 50)
-        .attr("y", i === 0 ? 5 : 5 + (i % 3) * 20)
+        .attr("x", 0)
+        .attr("y", 5 + i * 20)
         .attr("width", 15)
         .attr("height", 15)
         .attr("fill", project.color)
@@ -490,8 +493,8 @@ const TimeBasedSankeyDiagram = () => {
         .attr("stroke-width", 2);
         
       legend.append("text")
-        .attr("x", i === 0 ? 25 : 30 + Math.floor(i / 3) * 50)
-        .attr("y", i === 0 ? 17 : 17 + (i % 3) * 20)
+        .attr("x", 25)
+        .attr("y", 17 + i * 20)
         .text(project.name)
         .style("font-size", "12px");
     });
@@ -537,15 +540,6 @@ const TimeBasedSankeyDiagram = () => {
       .text("= 3 Phases")
       .style("font-size", "12px");
     
-    // Add title
-    svg.append("text")
-      .attr("x", width / 2)
-      .attr("y", -10)
-      .attr("text-anchor", "middle")
-      .style("font-size", "18px")
-      .style("font-weight", "bold")
-      .text("Project Timeline Sankey Diagram");
-      
     // Add a reset selection button
     const resetButton = svg.append("g")
       .attr("class", "reset-button")
@@ -706,27 +700,11 @@ const TimeBasedSankeyDiagram = () => {
   );
 };
 
-// Add usage instructions component
-const Instructions = () => (
-  <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
-    <h3 className="text-lg font-semibold mb-2">How to use this diagram:</h3>
-    <ul className="list-disc pl-5 space-y-1">
-      <li>Each colored bar represents a project with its phases</li>
-      <li>Click on any project to highlight its connections</li>
-      <li>Hover over projects or connections for more details</li>
-      <li>The vertical position shows the project size</li>
-      <li>The horizontal position shows time (x-axis)</li>
-      <li>Click the "Reset Selection" button or anywhere on the background to clear the selection</li>
-    </ul>
-  </div>
-);
-
 // Main component that wraps everything together
 const SankeyDiagramWithInstructions = () => {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-2">Project Timeline Sankey Diagram</h1>
-      <Instructions />
       <TimeBasedSankeyDiagram />
     </div>
   );
