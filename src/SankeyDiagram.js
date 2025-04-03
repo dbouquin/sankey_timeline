@@ -13,7 +13,7 @@ const TimeBasedSankeyDiagram = () => {
       { id: "project3", name: "Project C", time: new Date(2022, 7, 1), size: 60, color: "#2ecc71" },
       { id: "project4", name: "Project D", time: new Date(2022, 9, 1), size: 100, color: "#9b59b6" }, // Standalone project
       { id: "project5", name: "Project E", time: new Date(2022, 2, 15), size: 35, color: "#f39c12" }, // Standalone project
-      { id: "project6", name: "Project F", time: new Date(2022, 6, 10), size: 75, color: "#1abc9c" }, // Standalone project
+      { id: "project6", name: "Project F", time: new Date(2022, 9, 1), size: 75, color: "#1abc9c" }, // Standalone project
       { id: "project7", name: "Project G", time: new Date(2022, 11, 5), size: 25, color: "#6e87f5" }  // Standalone project
     ];
     
@@ -99,7 +99,7 @@ const TimeBasedSankeyDiagram = () => {
     
     svg.append("g")
       .attr("class", "x-axis")
-      .attr("transform", `translate(0,${height - 20})`) // Adjusted to move label
+      .attr("transform", `translate(0,${height - 20})`) // Adjusted to move label away from axis
       .call(xAxis)
       .selectAll("text")
       .style("text-anchor", "end")
